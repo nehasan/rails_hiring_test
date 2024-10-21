@@ -55,7 +55,7 @@ To reiterate:
 
 * `polls` can share `polling_locations`.
 * `polling_locations` are unique to a riding, and should not be duplicated in the same riding.
-* `polling_locations` should be shared across ridings.
+* `polling_locations` should not be shared across ridings.
 * We should be able to edit all polling locations for a riding on the same screen.
 * We should be able to edit the seeded data for Avalon to edit the polling locations, and not result in duplicate locations being created.
 * We should be able to select any riding and create new polling locations by entering a `title`, `address`, `city`, and `postal_code` for each poll.
