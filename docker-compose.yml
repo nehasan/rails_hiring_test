@@ -1,0 +1,58 @@
+networks:
+  ds-network:
+    driver: bridge
+
+services:
+  ds-db:
+    container_name: ds-db
+    image: postgres:15
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: ds
+      POSTGRES_HOST: ds
+      POSTGRES_PASSWORD: ds123!
+      POSTGRES_DB: ds_development
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ds -d ds_development'"]
+      interval: 25s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ds-network
+
+  ds-server:
+    build: ./
+    container_name: ds-server
+    tty: true
+    volumes:
+      - ./app:/app/app
+    ports:
+      - "3000:3000"
+    working_dir: /app
+    # entrypoint:
+    #   - ./entrypoint.sh
+    depends_on:
+      ds-db:
+        condition: service_started
+    environment:
+      - DB_USER=ds
+      - DB_NAME=ds_development
+      - DB_HOST=ds-db
+      - DB_PASSWORD=ds123!
+    networks:
+      - ds-network
+  
+  # mock-server:
+  #   build: ./externals/mock-server
+  #   container_name: ds-mock-server
+  #   volumes:
+  #     - ./externals/mock-server:/app
+  #   ports:
+  #     - "3001:3001"
+  #   working_dir: /app
+  #   networks:
+  #     - ds-network
