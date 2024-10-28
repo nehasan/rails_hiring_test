@@ -1,55 +1,299 @@
-<p style="color: green"><%= notice %></p>
+<div data-controller="polls">
+  <p style="color: green"><%= notice %></p>
 
-<h1 class="text-xl font-semibold leading-6 text-gray-900"><%= @riding.name %> - <%= @riding.riding_code %></h1>
-<%= @riding.province %>
+  <h1 class="text-xl font-semibold leading-6 text-gray-900"><%= @riding.name %> - <%= @riding.riding_code %></h1>
+  <%= @riding.province %>
+  
+  <h2 class="mt-4 text-lg font-semibold leading-6 text-gray-900">Polling Locations</h2>
+  
+  <div class="flex mt-10">
+    <!-- Create New Poll Button -->
+    <button 
+      data-polls-target="addNewPollBtn"
+      data-action="click->polls#showNewPollModal"
+      type="button" class="shadow-md text-gray-900 bg-red-100 border border-gray-300 focus:outline-none hover:bg-gray-100 focus:shadow-inner 
+                           font-medium rounded-lg text-sm px-2 py-1 me-2 mb-2 dark:bg-gray-800 dark:text-red-200 
+                           dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:shadow-inner"
+    >
+      <i class="fa-solid fa-plus"></i>&nbsp;Add New Poll
+    </button>
+  </div>
+  
+  <div class="mt-5 flow-root">
+    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+        <table class="min-w-full divide-y divide-gray-300">
+          <thead>
+            <tr>
+              <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Title</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Address</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">City</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Postal code</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Polls</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm"><i class="fa-solid fa-gear"></i></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <% if @polling_locations.any? %>
+              <% @polling_locations.each do |polling_location| %>
+                <% loc_id = polling_location.id %>
+                <tr id="polling-location-tr-<%= polling_location.id %>">
+                  <td id="title-<%= loc_id %>" class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0"><%= polling_location.title %></td>
+                  <td id="address-<%= loc_id %>" class="whitespace-nowrap px-3 py-4 text-sm"><%= polling_location.address %></td>
+                  <td id="city-<%= loc_id %>" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%= polling_location.city %></td>
+                  <td id="postal_code-<%= loc_id %>" class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%= polling_location.postal_code %></td>
+                  <td class="whitespace-normal px-3 py-4 text-sm text-gray-500"><%= polling_location.polls.map(&:number).join(", ")  %></td>
+                  <td>
+                    <div class="action-btns flex items-center justify-center">
+                      <!-- Edit Icon -->
+                      <a href="javascript:void(0)"
+                         data-id="<%= loc_id %>"
+                         data-action="click->polls#showEditPollingLocationModal">
+                         <i class="fa-regular fa-pen-to-square hover:text-amber-400"></i>
+                      </a>
+                      &nbsp;
+                      <!-- Update Icon -->
+                      <a href="javascript:void(0)">
+                        <i class="fa-solid fa-trash hover:text-red-400"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td>No polling locations available for this riding!</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Create Poll Modal -->
+  <div class="modal create-poll-modal relative z-10 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+  
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <!-- Modal content -->
+        <div
+          class="relative transform overflow-hidden rounded-lg bg-white max-w-4xl h-auto p-8 text-left shadow-xl transition-all w-full md:my-8 md:w-full md:max-w-6xl">
+          <!-- Modal header -->
+          <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Create New Poll : <span class="font-light italic text-red-400">
+                <%= @riding.name %>-<%= @riding.riding_code %>
+              </span>
+            </h3>
+            <button type="button" data-polls-target="closeNewPollModalBtn" data-action="click->polls#closeNewPollModal"
+              class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+              data-modal-toggle="crud-modal">
+              <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+              </svg>
+              <span class="sr-only">Close modal</span>
+            </button>
+          </div>
+          <!-- Modal body -->
+          <form data-polls-target="createPollForm" class="p-4 md:p-5">
+            <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+            <%= hidden_field_tag :riding_id, @riding.id %>
+            <div class="grid gap-4 mb-4 grid-cols-2">
+              <div class="flex">
+                <p class="text-red-400">New Polling Location:</p>
+              </div>
 
+              <div class="col-span-2">
+                <label for="title" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Title</label>
+                <input type="text" name="polls[title]" id="title"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  placeholder="Type poll title" required="true">
+              </div>
+              
+              <div class="col-span-2 sm:col-span-1">
+                <label for="address"
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Address</label>
+                <input type="text" name="polls[address]" id="address"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  placeholder="e.g.; 247 OldFriend Street" required="">
+              </div>
+              
+              <div class="col-span-2 sm:col-span-1">
+                <label for="city" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">City</label>
+                <select id="city-create" data-polls-target="cityNamesCreate" name="polls[city]"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                  <option selected="">Select City</option>
+                  <option value="Avalon">Markham</option>
+                  <option value="Toronto">Toronto</option>
+                  <option value="Oakville">Oakville</option>
+                  <option value="Peterbrough">Peterbrough</option>
+                </select>
+              </div>
 
-<h2 class="mt-4 text-lg font-semibold leading-6 text-gray-900">Polling locations</h2>
+              <div class="col-span-2 sm:col-span-1">
+                <label for="postal_code" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Postal Code</label>
+                <input type="text" name="polls[postal_code]" id="postal_code"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  placeholder="e.g.: L1H 525" required="true">
+              </div>
+            </div>
 
-<div class="mt-6 p-6 border border-gray-500 rounded-lg grid grid-cols-6 gap-y-2">
-  <div class="col-span-2 font-medium">
-    Title
+            <div class="mt-3 grid gap-4 mb-4 grid-cols-1">
+              <div class="flex">
+                <p class="text-red-400">Existing Polling Location:</p>
+              </div>
+
+              <div class="col-span-1">
+                <%= select_tag(
+                  "polls[polling_location_id]", 
+                    options_from_collection_for_select(@riding.polling_locations, "id", "title"), 
+                    prompt: "Select Location",
+                    class: 'bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500'
+                ) %>
+              </div>
+            </div>
+
+            <div class="mt-3 grid gap-4 mb-4 grid-cols-2 border-t">
+              <div class="mt-3 col-span-2 sm:col-span-1">
+                <p class="text-red-400">Poll Information:</p>
+              </div>
+
+              <!-- TODO: based on this radio selection enable/disable above polling location options -->
+              <div class="col-span-2">
+                <div class="flex items-left">
+                  <label for="poll-assign-to" class="block text-sm font-medium text-gray-900 dark:text-white">Assign this poll to:</label>
+                  <div class="flex items-center ml-3">
+                    <input checked id="poll-assign-to-1" type="radio" value="new" name="polls[assign_to]" checked="true" class="w-4 h-4 text-sm text-red-600 bg-gray-100 border-gray-300 focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                    <label for="poll-assign-to-1" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">New Location</label>
+                  </div>
+                  <div class="flex items-center ml-3">
+                      <input id="poll-assign-to-2" type="radio" value="existing" name="polls[assign_to]" class="w-4 h-4 text-sm text-red-600 bg-gray-100 border-gray-300 focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                      <label for="poll-assign-to-2" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Existing Location</label>
+                  </div>
+                  <div class="flex items-center ml-3">
+                    <input id="poll-assign-to-3" type="radio" value="none" name="polls[assign_to]" class="w-4 h-4 text-sm text-red-600 bg-gray-100 border-gray-300 focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                    <label for="poll-assign-to-3" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">None</label>
+                </div>
+                </div>
+              </div>
+
+              <div class="col-span-2 sm:col-span-1">
+                <label for="poll_number" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Poll Number</label>
+                <input type="text" name="polls[poll_number]" id="poll_number"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  placeholder="e.g.: 1000" value="<%= @next_poll_number %>" required="true">
+              </div>
+            </div>
+
+            <button data-action="click->polls#submitCreatePoll" type="submit"
+              class="text-white inline-flex items-center bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-blue-700 dark:focus:ring-red-800">
+              <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                  d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                  clip-rule="evenodd"></path>
+              </svg>
+              Create
+            </button>
+          </form>
+          <div class="flex mt-2">
+            <span class="create-poll-msg text-black text-sm"></span>
+            <span class="create-poll-err-msg text-red text-sm"></span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="col-span-1 font-medium">
-    Address
+  <!-- Edit Polling Location Modal -->
+  <div class="modal edit-poll-loc-modal relative z-10 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+  
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <!-- Modal content -->
+        <div
+          class="relative transform overflow-hidden rounded-lg bg-white max-w-4xl h-auto p-8 text-left shadow-xl transition-all w-full md:my-8 md:w-full md:max-w-6xl">
+          <!-- Modal header -->
+          <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Edit Polling Location : <span class="font-light italic text-red-400">
+                <%= @riding.name %>-<%= @riding.riding_code %>
+              </span>
+            </h3>
+            <button type="button" data-action="click->polls#closeEditPollingLocationModal"
+              class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+              data-modal-toggle="crud-modal">
+              <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+              </svg>
+              <span class="sr-only">Close modal</span>
+            </button>
+          </div>
+          <!-- Modal body -->
+          <form data-polls-target="editPollingLocationForm" class="p-4 md:p-5">
+            
+            <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+            <%= hidden_field_tag :riding_id, @riding.id %>
+            <input id="polling-loc-id" type="hidden" name="polling_location_id" value="">
+            
+            <div class="grid gap-4 mb-4 grid-cols-2">
+              <div class="col-span-2">
+                <label for="title" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Title</label>
+                <input type="text" name="polling_location[title]" id="title-edit"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  placeholder="Type poll title" required="true">
+              </div>
+              
+              <div class="col-span-2 sm:col-span-1">
+                <label for="address"
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Address</label>
+                <input type="text" name="polling_location[address]" id="address-edit"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  placeholder="e.g.; 247 OldFriend Street" required="">
+              </div>
+              
+              <div class="col-span-2 sm:col-span-1">
+                <label for="city" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">City</label>
+                <select id="city-edit" data-polls-target="cityNamesEdit" name="polling_location[city]"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                  <option selected="">Select City</option>
+                  <option value="Avalon">Markham</option>
+                  <option value="Toronto">Toronto</option>
+                  <option value="Oakville">Oakville</option>
+                  <option value="Peterbrough">Peterbrough</option>
+                </select>
+              </div>
+
+              <div class="col-span-2 sm:col-span-1">
+                <label for="postal_code" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Postal Code</label>
+                <input type="text" name="polling_location[postal_code]" id="postal_code-edit"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  placeholder="e.g.: L1H 525" required="true">
+              </div>
+            </div>
+
+            <button data-action="click->polls#submitEditPollingLocation" type="submit"
+              class="text-white inline-flex items-center bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-blue-700 dark:focus:ring-red-800">
+              <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                  d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                  clip-rule="evenodd"></path>
+              </svg>
+              Update
+            </button>
+          </form>
+          <div class="flex mt-2">
+            <span class="edit-poll-loc-msg text-black text-sm"></span>
+            <span class="edit-poll-loc-err-msg text-red text-sm"></span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <div class="col-span-1 font-medium">
-    City
-  </div>
-
-  <div class="col-span-1 font-medium">
-    Postal code
-  </div>
-
-  <div class="col-span-1 font-medium">
-    Polls
-  </div>
-
-  <% if @polling_locations.any? %>
-    <% @polling_locations.each do |polling_location| %>
-      <div class="col-span-2">
-        <%= polling_location.title %>
-      </div>
-
-      <div class="col-span-1">
-        <%= polling_location.address %>
-      </div>
-
-      <div class="col-span-1">
-        <%= polling_location.city %>
-      </div>
-
-      <div class="col-span-1">
-        <%= polling_location.postal_code %>
-      </div>
-
-      <div class="col-span-1">
-        <%= polling_location.polls.map(&:number).join(", ")  %>
-      </div>
-    <% end %>
-  <% else %>
-    <div class="col-span-5 text-center mt-3">No polling locations</div>
-  <% end%>
 </div>

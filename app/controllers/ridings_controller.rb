@@ -9,6 +9,7 @@ class RidingsController < ApplicationController
   # GET /ridings/1 or /ridings/1.json
   def show
     @polling_locations = @riding.polling_locations
+    @next_poll_number = Poll.next_poll_number
   end
 
   # GET /ridings/new

@@ -21,25 +21,25 @@ default: &default
 
 development:
   <<: *default
-  database: hiring_test_development
+  database: <%= ENV['DB_NAME'] || 'ds_development' %>
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
   # When left blank, PostgreSQL will use the default role. This is
   # the same name as the operating system user running Rails.
-  #username: hiring_test
+  username: <%= ENV['DB_USER'] || 'ds' %>
 
   # The password associated with the PostgreSQL role (username).
-  #password:
+  password: <%= ENV['DB_PASSWORD'] || 'ds123!' %>
 
   # Connect on a TCP socket. Omitted by default since the client uses a
   # domain socket that doesn't need configuration. Windows does not have
   # domain sockets, so uncomment these lines.
-  #host: localhost
+  host: <%= ENV['DB_HOST'] || 'ds-db' %>
 
   # The TCP port the server listens on. Defaults to 5432.
   # If your server runs on a different port number, change accordingly.
-  #port: 5432
+  port: 5432
 
   # Schema search path. The server defaults to $user,public
   #schema_search_path: myapp,sharedapp,public
@@ -55,7 +55,7 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: hiring_test_test
+  database: ds_test
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -79,6 +79,6 @@ test:
 #
 production:
   <<: *default
-  database: hiring_test_production
+  database: ds_production
   username: hiring_test
   password: <%= ENV["HIRING_TEST_DATABASE_PASSWORD"] %>
